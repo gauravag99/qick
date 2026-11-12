@@ -2666,11 +2666,15 @@ class QickProgramV2(AsmV2, AbsQickProgram):
             s = "___%04x_%08x_%08x_%06x_%08x_%08x" % (l[5], l[4], l[3], l[2], l[1], l[0])
             print(s)
 
-class AcquireProgramV2(AcquireMixin, QickProgramV2):
-    """Base class for tProc v2 programs with shot counting and readout acquisition.
-    You will need to define the acquisition structure with setup_acquire().
-    If you just want shot counting and run_rounds(), you can use setup_counter().
-    """
+# class AcquireProgramV2(AcquireMixin, QickProgramV2):
+#     """Base class for tProc v2 programs with shot counting and readout acquisition.
+#     You will need to define the acquisition structure with setup_acquire().
+#     If you just want shot counting and run_rounds(), you can use setup_counter().
+#     """
+#     pass
+from .new_acquire_mixin import StreamingAcquireMixin
+class AcquireProgramV2(StreamingAcquireMixin, QickProgramV2):
+
     pass
 
 class AveragerProgramV2(AcquireProgramV2):

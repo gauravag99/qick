@@ -14,7 +14,7 @@ from abc import ABC, abstractmethod
 from tqdm.auto import tqdm
 
 from qick import obtain, get_version
-from .helpers import to_int, cosine, gauss, triang, DRAG, decode_array, nqz, nyquist_image
+from .helpers import sine_flat_top, to_int, cosine, gauss, triang, DRAG, decode_array, nqz, nyquist_image
 
 logger = logging.getLogger(__name__)
 
@@ -1451,6 +1451,49 @@ class AbsQickProgram(ABC):
         lenreg *= samps_per_clk
 
         self.add_envelope(ch, name, idata=cosine(length=lenreg, maxv=maxv))
+
+    def add_sine_flat_top(self, ch, name, t_rise, length, maxv=None, even_length=False):
+        """Adds a sine flat top to the envelope library.
+        Duration units depend on the program type: tProc v1 programs use integer number of fabric clocks, tProc v2 programs use float us.
+
+        Parameters
+        ----------
+        ch : int
+            generator channel (index in 'gens' list)
+        name : str
+            Name of the envelope
+        t_rise : int or float
+            Length of the rising and falling edges (in fabric clocks or us)
+        length : int or float
+            Total envelope length (in fabric clocks or us)
+        maxv : float
+            Value at the peak (if None, the max value for this generator will be used)
+        even_length : bool
+            If length is in us, round the envelope length to an even number of fabric clock cycles.
+            This is useful for flat_top pulses, where the envelope gets split into two halves.
+        """
+        gencfg = self.soccfg['gens'][ch]
+        if maxv is None: maxv = self.soccfg.get_maxv(ch)
+        samps_per_clk = gencfg['samps_per_clk']
+
+
+        # convert to integer number of fabric clocks
+        if self.USER_DURATIONS:
+            if even_length:
+                lenreg = 2*self.us2cycles(gen_ch=ch, us=length/2)
+            else:
+                lenreg = self.us2cycles(gen_ch=ch, us=length)
+            trisereg = self.us2cycles(gen_ch=ch, us=t_rise, as_float=True)
+        else:
+            lenreg = np.round(length)
+            trisereg = t_rise
+
+        # convert to number of samples
+        lenreg *= samps_per_clk
+        trisereg *= samps_per_clk
+
+        self.add_envelope(ch, name, idata=sine_flat_top(t_rise=trisereg, length=lenreg, maxv=maxv))
+
 
     def add_gauss(self, ch, name, sigma, length, maxv=None, even_length=False):
         """Adds a Gaussian to the envelope library.

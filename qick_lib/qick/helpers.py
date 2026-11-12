@@ -65,7 +65,7 @@ def check_bytes(val, length, signed=True):
 def cosine(length=100, maxv=30000):
     """
     Create a numpy array containing a cosine shaped envelope function
-    
+
     :param length: Length of array
     :type length: int
     :param maxv: Maximum amplitude of cosine flattop function
@@ -77,6 +77,27 @@ def cosine(length=100, maxv=30000):
     y = maxv*(1-np.cos(x))/2
     return y
 
+def sine_flat_top(t_rise=25, length=100, maxv=30000):
+    """
+    Create a numpy array containing a sine flattop envelope function
+
+    :param t_rise: Length of rising and falling edge of the pulse
+    :type t_rise: int
+    :param length: Total length of array
+    :type length: int
+    :param maxv: Maximum amplitude of sine flattop function
+    :type maxv: float
+    :return: Numpy array containing a sine flattop function
+    :rtype: numpy.ndarray
+    """
+    if 2*t_rise > length:
+        raise ValueError("Rise time is too long for total pulse length")
+    x = np.linspace(0, np.pi/2, int(t_rise))
+    sin_array = np.sin(x)**2
+    y = maxv * np.ones(length)
+    y[:len(sin_array)] = maxv * sin_array
+    y[length-len(sin_array):] = maxv *  sin_array[::-1]
+    return y
 
 def gauss(mu=0, si=25, length=100, maxv=30000):
     """
